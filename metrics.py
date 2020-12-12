@@ -91,7 +91,7 @@ class metrics():
             accs[alg] = acc
         return accs
 
-    def get_equality_opportunity(self, sensitive_name, s1, s2):
+    def get_equality_opportunity(self, sensitive_name='race', s1='Caucasian', s2='African-American'):
         """
         :param sensitive_name: the name of the feature that is sensitive, e.g. race
         :param s1, s2: the two group in the sensitive name that you want to compare
@@ -180,8 +180,14 @@ class metrics():
         geis = dict()
         for alg in self.algs:
             y_pred = self.pred[alg]
-            y_pred = (y_pred == 1).astype(np.float64)
-            y_true = (y_true == 1).astype(np.float64)
+            y_pred = (y_pred == self.advt).astype(np.float64)
+            y_true = (y_true == self.advt).astype(np.float64)
+            # notice here: b represent the benefits of individual
+            # If y_pred = 0, y_true = 1, then the benefits is 0. 
+            # Meaning it suppose to be great result (1), but instead predict bad result (0)
+            # If y_pred = 1, y_true = 0, then the benefits is 2.
+            # Meaning it suppose to be bad result (0), but instead predict good result (1)
+            # so here since 0 is advert result, we need to recalculate the benefits
             b = 1 + y_pred - y_true
             gei = calc_generalized_entropy_index_given_b(b, alpha)
             geis[alg] = gei
@@ -202,6 +208,8 @@ class metrics():
         for alg in self.algs:
             gei = 0.0
             y_pred = self.pred[alg]
+            y_pred = y_pred == self.advt
+            y_true = y_true == self.advt
             b = 1 + y_pred - y_true
             mu = np.mean(b)
 
@@ -235,6 +243,8 @@ class metrics():
         for alg in self.algs:
             gei = 0.0
             y_pred = self.pred[alg]
+            y_pred = y_pred == self.advt
+            y_true = y_true == self.advt
             b = 1 + y_pred - y_true
             mu = np.mean(b)
 
